@@ -1,9 +1,9 @@
 # RL_Assignment_1
 The repository for assignment #1 of the Reinforcement Learning course - Spring 2024
 
-Student names: Pedram A. Darestani - Zahra Jabbari
+Student names: Pedram A. Darestani - Zahra Jabari
 
-Student ids:   202383919           - ?????????
+Student ids:   202383919           - 202291677
 
 In order to replicate the results, you can clone this repository and use the templates given in the files Runs1.ipynb, Runs2.ipynb, and Runs2_cross_model_eval.ipynb.
 
