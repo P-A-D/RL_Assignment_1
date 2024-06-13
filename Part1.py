@@ -3,8 +3,9 @@ import matplotlib.pyplot as plt
 
 
 class Evaluator:
-    """Evaluator for the part 1 of the projects"""
+    """This class trains an agent for 1000 different initialization."""
     def __init__(self, agent, run_count=1000, gradient=False, **kwargs):
+        """Initialize the agent."""
         # loading arguments into parameters
         self.agent = agent
         self.run_count = run_count
@@ -21,18 +22,21 @@ class Evaluator:
         self.percents = None
 
     def run(self):
-        """Initializes and trains an agent with the given algorithm n times and aggregates the algorithm's performance"""
-        # trainings
+        """Trains an agent with the given algorithm 1000 times and aggregates the algorithm's performance"""
+
+        # Learning loops below
         if self.gradient:
+            # learning the gradient agent
             for _ in range(self.run_count):
                 reward_distribution_means = np.random.normal(size=(self.k,))
                 agent = self.agent(**self.kwargs, reward_distribution_means=reward_distribution_means)
                 optimal_percentage_sequence = agent.learn()
                 self.optimal_percentage_sequences.append(optimal_percentage_sequence)
 
-            # aggregation
+            # aggregation of the results
             self.percents = np.array(self.optimal_percentage_sequences).mean(axis=0) * 100
         else:
+            # learning the epsilon greedy agent
             for _ in range(self.run_count):
                 reward_distribution_means = np.random.normal(size=(self.k,))
                 agent = self.agent(**self.kwargs, reward_distribution_means=reward_distribution_means)
@@ -40,12 +44,13 @@ class Evaluator:
                 self.average_reward_sequences.append(avg_reward_acquired_sequence)
                 self.optimal_percentage_sequences.append(optimal_percentage_sequence)
 
-            # aggregation
+            # aggregation of the results
             self.rewards = np.array(self.average_reward_sequences).mean(axis=0)
             self.percents = np.array(self.optimal_percentage_sequences).mean(axis=0) * 100
         return self.percents, self.rewards
 
     def visualize(self):
+        """Visualizes the performance of the trained agent."""
         if not self.gradient:
             fig = plt.figure()
             plt.plot(self.rewards)
@@ -69,7 +74,7 @@ class Evaluator:
 
 
 class EpsilonGreedyAgent:
-    """EpsilonGreedyAgent for the part 1 of the projects"""
+    """The class for the greedy agent. It holds agent's variables and has learning methods"""
     def __init__(self, epsilon, reward_distribution_means, update_method='avg', action_values=np.zeros(10), alpha=0.1,
                  iterations=1000):
         """If epsilon=0 then this agent behaves greedily"""
@@ -91,7 +96,7 @@ class EpsilonGreedyAgent:
         self.best_action = np.argmax(self.reward_distribution_means)
 
     def select_action(self):
-        """There are no states, so action rewards do not depend on the current state."""
+        """This method selects an action for the agent."""
         if np.random.rand() < self.epsilon:  # explore
             action_index = np.random.randint(self.k)
             self.action_counts[action_index] += 1
@@ -103,7 +108,7 @@ class EpsilonGreedyAgent:
 
     def learn_from_consequences(self, action):
         """This function determines the reward agent observes by taking an action,
-         and then updates the action value estimates of the agent."""
+         and then updates its action value estimates."""
         # calculate the received reward
         received_reward = np.random.normal(loc=self.reward_distribution_means[action], scale=1.0)
         self.action_reward_record[action].append(received_reward)
@@ -124,6 +129,7 @@ class EpsilonGreedyAgent:
                                                   self.action_counts[action] + add
 
     def evaluate(self):
+        """Evaluates the agent's performance after every time step."""
         # find the average acquired reward of the agent for the current time step
         best_action_index = np.argmax(self.action_value_estimates)
         average_acquired_reward = (1 - self.epsilon) * self.action_value_estimates[best_action_index] + \
@@ -136,7 +142,7 @@ class EpsilonGreedyAgent:
             np.sum(np.array(self.action_sequence) == self.best_action) / len(self.action_sequence))
 
     def learn(self):
-        """Trains the agent for the given number of iterations."""
+        """Trains the agent for the given number of time steps."""
         for _ in range(self.iterations):
             action = self.select_action()
             self.learn_from_consequences(action)
@@ -145,6 +151,7 @@ class EpsilonGreedyAgent:
 
 
 class GradientAgent:
+    """The class for the gradient agent. It holds agent's variables and has learning methods"""
     def __init__(self, alpha, run_count=1000, time_steps=5000):
         self.alpha = alpha
         self.run_count = run_count
@@ -162,6 +169,7 @@ class GradientAgent:
         self.results = None
 
     def reset(self):
+        """Refreshes the agent's class variables to run the algorithm with a new set of initial values."""
         self.reward_means = np.random.normal(size=(10,))
         self.preferences = np.zeros(10)
         self.action_probabilities = None
@@ -171,6 +179,7 @@ class GradientAgent:
         self.percents = []
 
     def select_action(self):
+        """This method selects an action for the agent."""
         self.action_probabilities = np.exp(self.preferences)/(np.exp(self.preferences).sum())
         action = np.random.choice(10, p=self.action_probabilities)
         self.action_sequence.append(action)
@@ -178,6 +187,8 @@ class GradientAgent:
         return action
 
     def learn_from_consequences(self, action):
+        """This function determines the reward agent observes by taking an action,
+         and then updates its action value estimates."""
         received_reward = np.random.normal(loc=self.reward_means[action], scale=1.0)
         onehot = np.zeros(10)
         onehot[action] = 1
@@ -185,9 +196,12 @@ class GradientAgent:
         self.average_reward += (received_reward - self.average_reward)/self.time_step
 
     def evaluate(self):
+        """Evaluates the agent's performance after every time step."""
         self.percents.append(np.sum(np.array(self.action_sequence) == np.argmax(self.reward_means))/self.time_step)
 
     def learn(self):
+        """Trains an agent for n time steps and records its results.
+           Then it re-initializes the agent and repeats the training for 1000 times"""
         for _ in range(self.run_count):
             self.reset()
             for _ in range(self.max_time_steps):
@@ -199,6 +213,7 @@ class GradientAgent:
         return self.results
 
     def plot(self):
+        """Plots the results of the agent."""
         fig = plt.figure()
         plt.grid(zorder=0)
         plt.xlabel("Time steps")
@@ -208,8 +223,3 @@ class GradientAgent:
         plt.plot(self.results)
         plt.show()
 
-
-if __name__ == "__main__":
-    asd = GradientAgent(alpha=0.1, run_count=1000, time_steps=50)
-    x = asd.learn()
-    asd.plot()

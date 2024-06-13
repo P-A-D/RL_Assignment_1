@@ -4,15 +4,18 @@ import matplotlib.pyplot as plt
 
 
 class Environment:
+    """The environment class that gives rewards to the agent. Its rewards can be adjusted over time steps."""
     def __init__(self, change_type='gradual', gradual_mode=True):
         self.change_type = change_type
         self.gradual_mode = gradual_mode
         self.reward_distribution_means = np.random.normal(loc=0.0, scale=1.0, size=10)
 
     def _get_reward(self, action):
+        """Protected method that samples a reward from the reward distribution."""
         return np.random.normal(loc=self.reward_distribution_means[action], scale=1.0)
 
     def _adjust(self):
+        """Adjusts the reward distribution means."""
         if self.change_type == 'gradual':
             if self.gradual_mode:
                 self.reward_distribution_means += np.random.normal(loc=0.0, scale=0.001 ** 2, size=10)
@@ -25,12 +28,14 @@ class Environment:
                 self.reward_distribution_means = np.random.permutation(self.reward_distribution_means)
 
     def get_reward(self, action):
+        """Gets the agent's rewards and adjusts the reward distribution means."""
         reward = self._get_reward(action)
         self._adjust()
         return reward
 
 
 class ASEGreedy:
+    """Epsilon greedy agent class."""
     def __init__(self, epsilon, environment, decreasing_step_size=True, update_method='incremental', alpha=0.1,
                  iterations=20000, optimistic=False, decay_rate=0.01):
         """If epsilon=0 then this agent behaves greedily"""
@@ -55,7 +60,7 @@ class ASEGreedy:
         self.action_reward_record = [[0]] * self.k
 
     def select_action(self):
-        """There are no states, so action rewards do not depend on the current state."""
+        """This method selects an action for the agent."""
         if np.random.rand() < self.epsilon:  # explore
             action_index = np.random.randint(self.k)
             self.action_counts[action_index] += 1
@@ -66,7 +71,8 @@ class ASEGreedy:
         return action_index
 
     def learn_from_consequences(self, action):
-        """This function determines the reward agent observes by taking an action, and then updates the action value estimates of the agent."""
+        """This function determines the reward agent observes by taking an action,
+         and then updates its action value estimates."""
         # observe the received reward
         received_reward = self.environment.get_reward(action)
         self.reward_sequence.append(received_reward)
@@ -87,7 +93,7 @@ class ASEGreedy:
             self.action_value_estimates[action] = self.action_value_estimates[action] * (1 - self.alpha) ** \
                                                   self.action_counts[action] + add
 
-        if self.decreasing_step_size:  # todo: implement subtraction mode for step size decrease
+        if self.decreasing_step_size:
             self.epsilon *= (1 - self.decay_rate)
 
     def learn(self):
@@ -99,6 +105,7 @@ class ASEGreedy:
 
 
 class MovingEvaluator:
+    """This class trains an agent for 1000 different initialization."""
     def __init__(self, epsilon, env_change_type='gradual', env_gradual_mode=True, run_count=1000, **kwargs):
         self.epsilon = epsilon
         self.change_type = env_change_type
@@ -110,7 +117,7 @@ class MovingEvaluator:
         self.terminal_average_rewards = None
 
     def run(self, preset_env=None):
-        """Initializes and trains an agent with the given algorithm n times and aggregates the algorithm's performance"""
+        """Trains an agent with the given algorithm 1000 times and aggregates the algorithm's performance"""
         # trainings
         if preset_env is None:
             environment = Environment(change_type=self.change_type, gradual_mode=self.gradual_mode)
@@ -127,6 +134,7 @@ class MovingEvaluator:
         return self.terminal_average_rewards
 
     def visualize(self):
+        """Plots the results of the agent."""
         # terminal rewards histogram
         fig = plt.figure()
         plt.grid()
