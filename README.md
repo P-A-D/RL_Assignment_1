@@ -5,7 +5,7 @@ Student names: Pedram A. Darestani - Zahra Jabari
 
 Student ids:   202383919           - 202291677
 
-In order to replicate the results, you can clone this repository and use the templates given in the files Runs1.ipynb, Runs2.ipynb, and Runs2_cross_model_eval.ipynb.
+In order to replicate the results you need to have numpy, pandas, and matplotlib python libraries installed. Then, you can clone this repository and use the templates given in the files Runs1.ipynb, Runs2.ipynb, and Runs2_cross_model_eval.ipynb.
 
 These three notebooks call the two Part1.py and Part2.py scripts that train and evaluate agents.
 
@@ -15,7 +15,7 @@ You can adjust the arguments passed to the agent/evaluator objects in order to f
 
 The code usage in the notebooks is quite short and straightforward.
 
-Most of the possible customizations are implemented in the notebooks and by following the code chunks and markdown above them, you can easily understand how they work.
+Most of the possible customizations are implemented in the notebooks and by following the code chunks and markdowns above them, you can easily understand how they work.
 
 Both Runs2.ipynb and Runs2_cross_model_eval.ipynb notebooks are for the seconds part of the assignment. Their difference is in the initial reward mean distribution.
 
